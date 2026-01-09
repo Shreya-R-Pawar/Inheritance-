@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { X } from "lucide-react";
-import ArtGrid from "../components/explore/ArtGrid";
+import ArtGrid from "../components/ArtGrid";
 import sampleArtData from "../constants/SampleArtData";
-import ArtDetails from "../components/ArtDetails";
 
 
 const Explore = () => {
@@ -153,20 +152,7 @@ const Explore = () => {
 
       <ArtGrid
       artworks={filteredArtData}
-      onArtClick={(art) => {
-        setSelectedArt(art);
-        setIsModalOpen(true);
-      }}
     />
-
-    <ArtDetails
-      art={selectedArt}
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      context="explore"
-    />
-
-
     </div>
   );
 };

@@ -70,7 +70,7 @@ const SampleArtData = [
     price: 3.2,
     currency: "ETH",
     currentBid: 3.8,
-    endDate: "2026-01-08T18:30:00Z",
+    endDate: "2026-01-11T18:30:00Z",
 
     genre: "abstract",
     tags: ["abstract", "modern"],

@@ -1,6 +1,6 @@
 import ArtCard from "./ArtCard";
 
-const ArtGrid = ({ artworks, onArtClick }) => {
+const ArtGrid = ({ artworks }) => {
   return (
     <div
       className="
@@ -13,7 +13,7 @@ const ArtGrid = ({ artworks, onArtClick }) => {
       "
     >
       {artworks.map((art) => (
-        <ArtCard key={art.id} art={art} onClick={() => onArtClick(art)} />
+        <ArtCard key={art.id} art={art} />
       ))}
     </div>
   );
