@@ -1,6 +1,6 @@
 import ArtCard from "./ArtCard";
 
-const ArtGrid = ({ artworks }) => {
+const ArtGrid = ({ artworks, page }) => {
   return (
     <div
       className="
@@ -13,7 +13,8 @@ const ArtGrid = ({ artworks }) => {
       "
     >
       {artworks.map((art) => (
-        <ArtCard key={art.id} art={art} />
+
+        <ArtCard key={art.id} art={art} page={page}/>
       ))}
     </div>
   );

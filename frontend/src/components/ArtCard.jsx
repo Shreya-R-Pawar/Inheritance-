@@ -1,7 +1,7 @@
 import { ClockFading } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const ArtCard = ({ art, onClick }) => {
+const ArtCard = ({ art, page }) => {
     const [tick, setTick] = useState(0);
 
     useEffect(() => {
@@ -34,30 +34,22 @@ const ArtCard = ({ art, onClick }) => {
         return { days, hours, minutes, seconds };
     };
 
-    const timeRemaining =
-    art.saleType === "auction" ? getTimeRemaining(art.endDate) : null;
+    const timeRemaining = art.saleType === "auction" ? getTimeRemaining(art.endDate) : null;
 
-    if (art.saleType === "auction" && timeRemaining === null) {
+    const auctionEnded = art.saleType === "auction" && timeRemaining === null;
+    if (auctionEnded && page === "explore") {
       return null;
     }
 
+    
+
   return (
-    <div
-        onClick={() => onClick()}
-        className="group cursor-pointer"
+    <div className="group cursor-pointer"
       >
       
       {/* Image */}
       <div className="relative overflow-hidden rounded-lg bg-neutral-900">
-        <img
-          src={art.image}
-          alt={art.title}
-          className="
-            w-full h-72 object-cover
-            transition-transform duration-300
-            group-hover:scale-105
-          "
-        />
+        <img src={art.image} alt={art.title} className=" w-full h-72 object-cover transition-transform duration-300 group-hover:scale-105 " />
 
         {/* Sale Type Badge */}
         <span
@@ -72,48 +64,43 @@ const ArtCard = ({ art, onClick }) => {
         </span>
 
         {/* Ends in Badge for Auction only */}
-        {art.saleType === "auction" && timeRemaining && (
-        <div className="absolute top-3 right-3 group/ends">
+        {art.saleType === "auction" && (
+          <div className="absolute top-3 right-3 group/ends">
             <div
-            className="
-                flex items-center gap-1
-                px-3 py-1
-                text-xs text-white
-                rounded-full
-                bg-black/70 backdrop-blur
-                overflow-hidden
-                max-w-[80px]
-                group-hover/ends:max-w-[260px]
-                transition-all duration-300 ease-out
-                origin-right
-            "
+              className=" flex items-center gap-1 px-3 py-1 text-xs text-white rounded-full bg-black/70 backdrop-blur overflow-hidden max-w-[80px] group-hover/ends:max-w-[260px] transition-all duration-300 ease-out origin-right"
             >
-            <ClockFading size={14} className="shrink-0 opacity-80" />
+              
 
-            {/* Compact */}
-            {timeRemaining !== null && (
+              {/* Compact */}
+              {timeRemaining ? (
+              <>
+                <ClockFading size={14} className="shrink-0 opacity-80" />
                 <span className="whitespace-nowrap">
-                {timeRemaining.days}d {timeRemaining.hours}h
+                  {timeRemaining.days}d {timeRemaining.hours}h
                 </span>
-            )}
+              </>
+              ) : (
+                <span className="whitespace-nowrap text-red-400">
+                  Ended
+                </span>
+              )}
 
-            {/* Expanded */}
-            {timeRemaining !== null && (
+              {/* Expanded (only if still live) */}
+              {timeRemaining && (
                 <span
-                className="
+                  className="
                     whitespace-nowrap
                     opacity-0
                     group-hover/ends:opacity-100
                     transition-opacity duration-200 delay-100
-                "
+                  "
                 >
-                {timeRemaining.minutes}m {timeRemaining.seconds}s
+                  {timeRemaining.minutes}m {timeRemaining.seconds}s
                 </span>
-            )}
+              )}
             </div>
-        </div>
+          </div>
         )}
-
       </div>
 
       {/* Info */}

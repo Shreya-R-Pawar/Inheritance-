@@ -10,8 +10,6 @@ const Explore = () => {
   const [genre, setGenre] = useState("all");
   const [sortBy, setSortBy] = useState("new");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedArt, setSelectedArt] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const SALE_TYPES = ["auction", "direct", "fractional"];
 
 
@@ -21,6 +19,10 @@ const Explore = () => {
     }
 
     if (genre !== "all" && art.genre !== genre) {
+      return false;
+    }
+
+    if (art.saleType != "auction" && art.status === "sold") {
       return false;
     }
 
@@ -151,7 +153,7 @@ const Explore = () => {
       </div>
 
       <ArtGrid
-      artworks={filteredArtData}
+      artworks={filteredArtData} page="explore"
     />
     </div>
   );
