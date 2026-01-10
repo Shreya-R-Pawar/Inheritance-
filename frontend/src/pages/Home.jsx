@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Clock, Sparkles, TrendingUp, User, Hexagon, ArrowRight, Award, Users } from 'lucide-react';
@@ -33,15 +32,7 @@ function ArtCard({ artwork, isLive }) {
           style={{ backgroundImage: `url(${artwork.image})` }} 
         />
         
-        {isLive ? (
-          <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-[10px] px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5 border border-white/20 tracking-[0.5px]">
-            <TrendingUp size={12} /> LIVE
-          </div>
-        ) : (
-          <div className="absolute top-4 left-4 bg-white/95 text-black px-3 py-1.5 rounded-[20px] text-xs font-bold flex items-center gap-1 shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-            <Sparkles size={12} fill="#000" />{artwork.match}
-          </div>
-        )}
+        
 
         <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
       </div>
@@ -375,20 +366,9 @@ function LiveAuctions({ artworks }) {
             <h2 className="text-5xl font-normal m-0 mb-3 -tracking-[1px] font-serif">Live Auctions</h2>
             <p className="text-[17px] text-[#8a8a8a] m-0">Real-time bidding on extraordinary artworks</p>
           </div>
-          <div className="flex gap-3">
-            {['Trending', 'Recent', 'Ending Soon'].map((filter, index) => (
-              <button 
-                key={filter} 
-                className={`py-3 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                  index === 0 
-                  ? "bg-white text-black border-none hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(255,255,255,0.15)]" 
-                  : "bg-transparent text-white border border-white/15 hover:bg-white/5 hover:border-white/30"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+          <Link to="/explore" className=" bg-transparent text-white border border-white/15 py-3.5 px-7 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all duration-300 hover:bg-white/5 hover:border-white/30">
+            View All  <ArrowRight size={16} />
+          </Link>
         </div>
         
         <div className="grid grid-cols-4 gap-6">
@@ -442,9 +422,9 @@ export default function HomePage() {
 
   //Passed down as props to children  (data)
   const recommendedWorks = [
-    { id: 1, title: 'Abstract Composition #42', artist: 'Elena Martinez', currentBid: '2.5 ETH', timeLeft: '2h 15m', match: '98% Match', image: 'https://images.unsplash.com/photo-1549887534-1541e9326642?w=800&h=800&fit=crop' },
-    { id: 2, title: 'Digital Landscape Series', artist: 'Marcus Chen', currentBid: '3.8 ETH', timeLeft: '5h 42m', match: '95% Match', image: 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&h=800&fit=crop' },
-    { id: 3, title: 'Minimalist Portrait', artist: 'Sofia Andersson', currentBid: '1.9 ETH', timeLeft: '1h 08m', match: '91% Match', image: 'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&h=800&fit=crop' }
+    { id: 1, title: 'Abstract Composition #42', artist: 'Elena Martinez', currentBid: '2.5 ETH', timeLeft: '2h 15m', image: 'https://images.unsplash.com/photo-1549887534-1541e9326642?w=800&h=800&fit=crop' },
+    { id: 2, title: 'Digital Landscape Series', artist: 'Marcus Chen', currentBid: '3.8 ETH', timeLeft: '5h 42m', image: 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=800&h=800&fit=crop' },
+    { id: 3, title: 'Minimalist Portrait', artist: 'Sofia Andersson', currentBid: '1.9 ETH', timeLeft: '1h 08m', image: 'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?w=800&h=800&fit=crop' }
   ];
 
   const heroAuction = {

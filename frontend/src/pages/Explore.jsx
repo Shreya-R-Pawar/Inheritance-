@@ -115,7 +115,7 @@ const Explore = () => {
           value={genre}
           onChange={(e) => setGenre(e.target.value)}
           className="
-            bg-[#121212] border border-neutral-800
+            bg-black border border-neutral-800
             px-4 py-2 rounded-md text-sm
             text-gray-300 focus:outline-none
           "
@@ -136,7 +136,7 @@ const Explore = () => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="
-              bg-[#121212] border border-neutral-800
+              bg-black border border-neutral-800
               px-4 py-2 rounded-md text-sm
               text-gray-300 focus:outline-none
               "

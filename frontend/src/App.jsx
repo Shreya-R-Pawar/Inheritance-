@@ -6,6 +6,7 @@ import Explore from "./pages/Explore";
 import Studio from "./pages/Studio";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
+import ArtPage from "./pages/ArtPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/studio" element={<Studio />} />
         <Route path="/analytics" element={<Analytics />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/art/:id" element={<ArtPage />} />
       </Routes>
     </>
   );

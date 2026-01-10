@@ -1,5 +1,6 @@
 import { ClockFading } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const ArtCard = ({ art, page }) => {
     const [tick, setTick] = useState(0);
@@ -44,7 +45,7 @@ const ArtCard = ({ art, page }) => {
     
 
   return (
-    <div className="group cursor-pointer"
+    <Link to={`/art/${art.id}`} className="block group cursor-pointer"
       >
       
       {/* Image */}
@@ -118,7 +119,7 @@ const ArtCard = ({ art, page }) => {
           {art.price} {art.currency}
         </p>
       </div>
-    </div>
+    </Link>
   );
 };
 
