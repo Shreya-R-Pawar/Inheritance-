@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import SampleArtData from "../constants/SampleArtData";
 import { useMemo } from "react";
 
@@ -14,20 +15,36 @@ const getTimeRemaining = (endDate) => {
     days: Math.floor(totalSeconds / (24 * 3600)),
     hours: Math.floor((totalSeconds % (24 * 3600)) / 3600),
     minutes: Math.floor((totalSeconds % 3600) / 60),
+    seconds: totalSeconds % 60,
   };
 };
 
+
+
 const ArtPage = () => {
+
   const { id } = useParams();
 
   const art = SampleArtData.find((a) => a.id === Number(id));
+
+  const [tick, setTick] = useState(0);
+
+    useEffect(() => {
+    if (art.saleType !== "auction") return;
+
+    const interval = setInterval(() => {
+        setTick((t) => t + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+    }, [art.saleType]);
 
   const remainingTime = useMemo(
     () =>
       art?.saleType === "auction"
         ? getTimeRemaining(art.endDate)
         : null,
-    [art]
+    [art, tick]
   );
 
   if (!art) {
@@ -40,12 +57,12 @@ const ArtPage = () => {
 
         {/* LEFT: Artwork */}
         
-        <div className="max-h-[85vh] overflow-y-auto rounded-xl bg-neutral-900">
+        <div className="flex items-center justify-center h-[90vh] bg-neutral-900 rounded-xl">
         <img
             src={art.image}
             alt={art.title}
-            className="w-full object-contain cursor-zoom-in"
-            onClick={() => window.open(image, "_blank")}
+            className="max-h-full max-w-full object-contain cursor-zoom-in"
+            onClick={() => window.open(art.image, "_blank")}
         />
         </div>
            
@@ -76,7 +93,7 @@ const ArtPage = () => {
             </p>
             <p className="text-sm text-neutral-400">
                 Ends in: {remainingTime.days}d {remainingTime.hours}h{" "}
-                {remainingTime.minutes}m
+                {remainingTime.minutes}m {remainingTime.seconds}s
             </p>
             <p className="text-xs text-neutral-500">
                 Ends on {new Date(art.endDate).toDateString()}

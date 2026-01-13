@@ -10,7 +10,7 @@ const Explore = () => {
   const [genre, setGenre] = useState("all");
   const [sortBy, setSortBy] = useState("new");
   const [searchQuery, setSearchQuery] = useState("");
-  const SALE_TYPES = ["auction", "direct", "fractional"];
+  const SALE_TYPES = ["auction", "direct"];
 
 
   const filteredArtData = sampleArtData.filter((art) => {
@@ -26,7 +26,7 @@ const Explore = () => {
       return false;
     }
 
-    if (searchQuery) {
+    if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
 
       const matchesSearch =
@@ -38,9 +38,25 @@ const Explore = () => {
         return false;
       }
     }
-
     return true;
   });
+
+  const sortedFilteredArtData = [...filteredArtData].sort((a, b) => {
+    if (sortBy === "new") {
+      return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+    }
+
+    if (sortBy === "low") {
+      return a.price - b.price;
+    }
+
+    if (sortBy === "high") {
+      return b.price - a.price;
+    }
+
+    return 0;
+  });
+
 
   return (
 
@@ -142,8 +158,8 @@ const Explore = () => {
               "
           >
               <option value="new">New Arrivals</option>
-              <option value="priceLow">Price: Low to High</option>
-              <option value="priceHigh">Price: High to Low</option>
+              <option value="low">Price: Low to High</option>
+              <option value="high">Price: High to Low</option>
 
               {saleType === "auction" && (
               <option value="ending">Ending Soon</option>
@@ -153,7 +169,7 @@ const Explore = () => {
       </div>
 
       <ArtGrid
-      artworks={filteredArtData} page="explore"
+      artworks={sortedFilteredArtData} page="explore"
     />
     </div>
   );

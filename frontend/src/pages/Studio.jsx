@@ -10,7 +10,7 @@ import SampleArtData from "../constants/SampleArtData";
 const Studio = () => {
 
   const mockAuthUser = {
-    userid: 2,
+    userId: 2,
     username: "N. Verma",
   };
 
@@ -24,7 +24,7 @@ const Studio = () => {
 
   //Art in Your Art
   const myArt = SampleArtData.filter(
-    (art) => art.artistId === loggedInUser.userid
+    (art) => art.artistId === loggedInUser.userId
   );
 
   //filters in Your Art
@@ -35,17 +35,21 @@ const Studio = () => {
 
   //Art in Purchased
   const purchasedArt = SampleArtData.filter(
-    art => art.purchasedBy?.includes(loggedInUser.userid)
+    art => art.purchasedBy?.includes(loggedInUser.userId)
   );
 
   //Art in Favorites
   const likedArt = SampleArtData.filter(
-    art => art.likedBy?.includes(loggedInUser.userid)
+    art => art.likedBy?.includes(loggedInUser.userId)
   );
 
   //filters in Favorites
+  const filteredLikedArt = likedArt.filter((art) => {
+    if (!status) return true;     
+    return art.status === "Up for Sale" || art.status === "Live";
+  });
 
-
+  const isForSaleActive = status === "Up for Sale";
 
   return (
 
@@ -131,7 +135,7 @@ const Studio = () => {
 
           {/* ART RESULTS / EMPTY STATE */}
           <div className="mt-6">
-            {myArt.length === 0 ? (
+            {filteredArt.length === 0 ? (
               <p className="text-gray-500 text-lg text-center mt-10">
                 No artworks yet
               </p>
@@ -153,12 +157,28 @@ const Studio = () => {
       )}
 
       {activeTab === 2 && (
-        likedArt.length === 0 ? (
+        filteredLikedArt.length === 0 ? (
           <p className="text-gray-500 text-lg text-center mt-10">
             No liked artworks
           </p>
         ) : (
-          <ArtGrid artworks={likedArt} />
+          <>
+          <button
+            onClick={() => setStatus(isForSaleActive ? null : "Up for Sale")}
+                  className={`flex mt-6 items-center gap-2 px-4 py-2 rounded-full text-sm border transition cursor-pointer
+                    ${ isForSaleActive ? "border-white text-white" : "border-neutral-800 text-gray-500 hover:border-neutral-600" }`}
+                >
+                  For Sale
+
+                  {isForSaleActive && (
+                    <X
+                      size={14}
+                      className="opacity-70 hover:opacity-100"
+                    />
+                  )}
+          </button>
+          <ArtGrid artworks={filteredLikedArt} />
+          </>
         )
       )}
 
