@@ -25,7 +25,7 @@ contract artAuction is ERC721 {
         uint royaltyP;
         uint likes;
         bool nftMinted;
-        address ogArtist;
+        address originalArtist;
         bool available;      //true means u can create either Ds or /auction out of it, initially = true 
     }
 
@@ -35,7 +35,7 @@ contract artAuction is ERC721 {
         string location;
         string bio;
         string username;
-        string pfp_hash;
+        string pfpHash;
     }
 
     struct Auction {
@@ -84,11 +84,11 @@ contract artAuction is ERC721 {
         return string(abi.encodePacked("ipfs://", artworks[tokenId].ipfsHash));
     }
 
-//NFT tokenIds & sequential order (your case)
+//NFT tokenIds & sequential order
 
 // ERC721 doesn’t require tokenIds to be sequential — they just need to be unique.
 
-// In your contract:
+// In our contract:
 
 // artworkId increments when an artwork is created, not when it’s minted.
 
@@ -106,7 +106,7 @@ contract artAuction is ERC721 {
 
         Artwork storage art = artworks[artId];
 
-        require(art.ogArtist != address(0), "Artwork does not exist");
+        require(art.originalArtist != address(0), "Artwork does not exist");
 
         minted[artId] = true;
         art.nftMinted = true;
@@ -125,7 +125,7 @@ contract artAuction is ERC721 {
         string memory _location,
         string memory _bio,
         string memory _username,
-        string memory _pfp_hash
+        string memory _pfpHash
     ) public {
         require(!isRegistered[msg.sender], "Already registered");
         Artist storage artist = artists[msg.sender];
@@ -135,10 +135,10 @@ contract artAuction is ERC721 {
         artist.location = _location;
         artist.bio = _bio;
         artist.username = _username;
-        artist.pfp_hash = _pfp_hash;
+        artist.pfpHash = _pfpHash;
 
         isRegistered[msg.sender] = true;
-        emit Registered(msg.sender, _username, _pfp_hash);
+        emit Registered(msg.sender, _username, _pfpHash);
     }
 
     function login() public view returns (bool) {
@@ -160,7 +160,7 @@ contract artAuction is ERC721 {
         Artwork storage artwork = artworks[artworkId];
         artworkId++;
         artwork.AW_title = _AW_title;
-        artwork.ogArtist = msg.sender;
+        artwork.originalArtist = msg.sender;
         artwork.ipfsHash = _ipfsHash;
         artwork.royaltyP = _royaltyP;
         artwork.likes = 0;
@@ -177,12 +177,12 @@ contract artAuction is ERC721 {
         bool likeUnlikeArtwork // same event is used for liking and unliking and even if it has same index params it wont clash in frontend the graph will still distinguish both events
     );
 
-    function LikeorUnlike( uint _artWorkID) public {
+    function LikeUnlike( uint _artWorkID) public {
         bool liked;
         Artist storage artist = artists[msg.sender];
         Artwork storage artwork = artworks[_artWorkID];
         require(isRegistered[msg.sender], "Please register to like");
-        require(msg.sender != artwork.ogArtist, "Cannot like own artwork");
+        require(msg.sender != artwork.originalArtist, "Cannot like own artwork");
 
         if (!hasLiked[_artWorkID][msg.sender]) {
             hasLiked[_artWorkID][msg.sender] = true;
@@ -192,7 +192,7 @@ contract artAuction is ERC721 {
             hasLiked[_artWorkID][msg.sender] = false;
             liked = false;
         }
-        emit ArtworkLiked(artwork.ogArtist, _artWorkID, artist.name, msg.sender, liked);
+        emit ArtworkLiked(artwork.originalArtist, _artWorkID, artist.name, msg.sender, liked);
     }
 
     event FollowUnFollowArtist(
@@ -202,11 +202,11 @@ contract artAuction is ERC721 {
         bool followUnfollow
     );
 
-    function Follow(address _artistAddr) public {
+    function FollowUnfollow(address _artistAddr) public {
         //WORKS!
         bool follow;
         require(isRegistered[msg.sender], "Please register to follow");
-        require(msg.sender != _artistAddr, "cannot follow yourself"); //required?
+        require(msg.sender != _artistAddr, "Cannot follow yourself"); 
 
         if (isFollowing[msg.sender][_artistAddr]) {
             isFollowing[msg.sender][_artistAddr] = false;
@@ -238,7 +238,7 @@ contract artAuction is ERC721 {
         auction.auctionID = auctionCount;
         auction.seller = payable(msg.sender);
         auction.artID = _artID;
-        auction.basePrice = _basePrice;
+        auction.basePrice = _basePrice ;
         auction.endTime = block.timestamp + duration;
         auction.ended = false;
         auction.winner = address(0);
@@ -250,7 +250,6 @@ contract artAuction is ERC721 {
 
 
     }
-    //find way to display current bid, events perhaps
 
     event bidPlaced(uint indexed auctionID, address indexed bidder, string bidderName, uint bid);
 
@@ -269,7 +268,7 @@ contract artAuction is ERC721 {
         } else {
             minBid = auction.winningBid;
         }
-        require(msg.value > minBid, "Bid too low");
+        require(msg.value >= minBid, "Bid too low");
 
         
         auction.refunds[msg.sender] += msg.value;
@@ -279,7 +278,6 @@ contract artAuction is ERC721 {
         Artist storage artist = artists[msg.sender];
         emit bidPlaced(auctionID, msg.sender, artist.name, msg.value);
     }
-    //find out if way to end it automatically
 
     event auctionEnded(
         uint indexed auctionID,
@@ -289,7 +287,7 @@ contract artAuction is ERC721 {
         string artworkName
     );
 
-    function endAuction(uint auctionID) public { //to be called by auction owner
+    function endAuction(uint auctionID) public {
         Auction storage auction = auctions[auctionID];
         Artwork storage artwork = artworks[auction.artID];
         // Artist storage artist = artists[auction.]; //////////
@@ -303,14 +301,14 @@ contract artAuction is ERC721 {
         }
 
 
-        if (artwork.ogArtist != auction.seller) {
+        if (artwork.originalArtist != auction.seller) {
             uint royaltyPercentage = artwork.royaltyP;
             uint royaltyAmt = (royaltyPercentage * auction.winningBid) / 100;
             uint sellerAmt = auction.winningBid - royaltyAmt;
 
             _safeTransfer(auction.seller, auction.winner, auction.artID);
 
-            (bool Asuccess, ) = artwork.ogArtist.call{value: royaltyAmt}("");
+            (bool Asuccess, ) = artwork.originalArtist.call{value: royaltyAmt}("");
             require(Asuccess, "Transfer of royalty to artist failed");
 
             (bool Ssuccess, ) = auction.seller.call{value: sellerAmt}("");
@@ -318,7 +316,7 @@ contract artAuction is ERC721 {
         } else {
             mintNFT(auction.winner, auction.artID);
 
-            (bool success, ) = artwork.ogArtist.call{value: auction.winningBid}("");
+            (bool success, ) = artwork.originalArtist.call{value: auction.winningBid}("");
             require(success, "Transfer failed");
         }
         auction.ended = true;
@@ -351,7 +349,7 @@ contract artAuction is ERC721 {
         DS storage directSale = directSales[DirectSaleCount];
         Artwork storage artwork = artworks[_artworkID];
         directSale.seller = payable(msg.sender);
-        directSale.price = _price;
+        directSale.price = _price ;
         directSale.artworkID = _artworkID;
         directSale.sold = false;
         artwork.available=false;
@@ -369,9 +367,9 @@ contract artAuction is ERC721 {
         require(msg.value == directSale.price, "Price is incorrect");
 
 
-        if (directSale.seller == artwork.ogArtist) {    //First time sale, current owner = orArgsist
+        if (directSale.seller == artwork.originalArtist) {    //First time sale, current owner = orArgsist
             mintNFT(msg.sender, directSale.artworkID); //creating nft and minting directly to buyer, not making ogArtist as first owner
-            (bool success, ) = artwork.ogArtist.call{value: msg.value}("");
+            (bool success, ) = artwork.originalArtist.call{value: msg.value}("");
             require(success, "Payment to artist failed");
             directSale.sold = true;
 
@@ -382,7 +380,7 @@ contract artAuction is ERC721 {
 
             _safeTransfer(directSale.seller, msg.sender, directSale.artworkID, ""); //transfer ownership
 
-            (bool successRoyalty, ) = artwork.ogArtist.call{value: Royalty}(
+            (bool successRoyalty, ) = artwork.originalArtist.call{value: Royalty}(
                 ""
             );
             require(successRoyalty, "Royalty transfer failed");
