@@ -98,7 +98,7 @@ contract artAuction is ERC721 {
 
 // tokenURI(tokenId) just pulls metadata (IPFS hash) for that tokenId — gaps don’t matter.
 
-// ✅ This allows artists to create multiple artworks and mint them in any order, no sequential constraints.
+// This allows artists to create multiple artworks and mint them in any order, no sequential constraints.
 
 // Basically: creation order ≠ mint order ≠ sequential tokenIds. Gaps are fine.
     function mintNFT(address to, uint artId) internal {
