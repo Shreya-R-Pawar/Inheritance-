@@ -38,6 +38,12 @@ body::after {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.auth-input {
+  @apply w-full rounded-lg border border-white/10 bg-[#0f0f0f]
+  px-4 py-3 text-white placeholder-gray-500
+  outline-none focus:border-[#C9A227];
+}
+
 
 
 

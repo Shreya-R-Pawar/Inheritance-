@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import SampleArtData from "../constants/SampleArtData";
 import { useMemo } from "react";
+import { Link } from "react-router-dom"
 
 const getTimeRemaining = (endDate) => {
   if (!endDate) return null;

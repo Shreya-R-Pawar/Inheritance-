@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { X } from "lucide-react";
+import { MoveUp } from "lucide-react"
+import { MoveDown } from "lucide-react"
 import ArtGrid from "../components/ArtGrid";
 import sampleArtData from "../constants/SampleArtData";
 
@@ -158,8 +160,8 @@ const Explore = () => {
               "
           >
               <option value="new">New Arrivals</option>
-              <option value="low">Price: Low to High</option>
-              <option value="high">Price: High to Low</option>
+              <option value="low">Price ↑ </option>
+              <option value="high">Price ↓ </option>
 
               {saleType === "auction" && (
               <option value="ending">Ending Soon</option>

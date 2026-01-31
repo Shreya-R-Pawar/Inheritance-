@@ -2,8 +2,11 @@ import { ClockFading } from "lucide-react";
 import { Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ArtCard = ({ art, page }) => {
+
+  const navigate = useNavigate();
 
   const mockAuthUser = {
     userId: 2,
@@ -60,7 +63,9 @@ const ArtCard = ({ art, page }) => {
   };
 
   const handleBuy = (e) => {
-    //open modal to buy
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/directcheckout/${art.id}`);
   };
 
   const handleSell = (e) => {
@@ -76,7 +81,9 @@ const ArtCard = ({ art, page }) => {
   };
 
   const handlePlaceBid = (e) => {
-    //open modal to bid
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/auctioncheckout/${art.id}`);
   };
 
   const getButtonConfig = ({ saleType, status, artistId, userId }) => {
@@ -88,7 +95,7 @@ const ArtCard = ({ art, page }) => {
     // DIRECT SALE
     if (saleType === "direct") {
       if (artistId === userId) {
-        return { label: "Remove", action: handleRemove };
+        return { label: "End Sale", action: handleRemove };
       }
       return { label: "Buy Now", action: handleBuy };
     }
@@ -214,9 +221,9 @@ const ArtCard = ({ art, page }) => {
               {art.price} {art.currency}
             </p>
           </div>
-          <button onClick={buttonConfig.action} className="bg-red-500 h-8 w-20 mt-3 text-sm rounded-md cursor-pointer hover:bg-red-600 transition duration-300">
+          {page !== "explore" && <button onClick={buttonConfig.action} className="bg-neutral-700 h-8 w-20 mt-3 text-sm rounded-md cursor-pointer hover:bg-red-600 transition duration-300">
             {buttonConfig.label}
-          </button>
+          </button>}
         </div>
       </div>
     </div>
