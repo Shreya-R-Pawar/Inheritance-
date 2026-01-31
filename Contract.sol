@@ -3,9 +3,6 @@ pragma solidity ^0.8.20;
 //added events
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-//import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-//import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-//import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract artAuction is ERC721 {
     //NFT MINTING-------------------------------------------------------------------------------
@@ -20,7 +17,8 @@ contract artAuction is ERC721 {
     /// STRUCTS -----------------------------------------------------------------
 
     struct Artwork {
-        string AW_title;
+        string artworkTitle;
+        string description;
         string ipfsHash;
         uint royaltyP;
         uint likes;
@@ -45,7 +43,7 @@ contract artAuction is ERC721 {
         address winner;
         uint winningBid;
         uint basePrice;
-        uint endTime;  //in seconds ha
+        uint endTime;  //take in seconds
         bool ended;
         mapping(address => uint) refunds;
     }
@@ -84,23 +82,6 @@ contract artAuction is ERC721 {
         return string(abi.encodePacked("ipfs://", artworks[tokenId].ipfsHash));
     }
 
-//NFT tokenIds & sequential order
-
-// ERC721 doesn’t require tokenIds to be sequential — they just need to be unique.
-
-// In our contract:
-
-// artworkId increments when an artwork is created, not when it’s minted.
-
-// First minted NFT could have artworkId = 7, and that’s perfectly fine.
-
-// _safeMint(to, tokenId) only cares that tokenId hasn’t been minted yet.
-
-// tokenURI(tokenId) just pulls metadata (IPFS hash) for that tokenId — gaps don’t matter.
-
-// This allows artists to create multiple artworks and mint them in any order, no sequential constraints.
-
-// Basically: creation order ≠ mint order ≠ sequential tokenIds. Gaps are fine.
     function mintNFT(address to, uint artId) internal {
         require(!minted[artId], "NFT already minted");
 
@@ -116,7 +97,7 @@ contract artAuction is ERC721 {
 
     event Registered(
         address indexed newUser,
-        string indexed name,
+        string indexed username,
         string indexed pfp
     );
     // GENERAL FUNCTIONS -------------------------------------------------------------------
@@ -152,21 +133,24 @@ contract artAuction is ERC721 {
     );
 
     function createArtwork(
-        string memory _AW_title,
+        string memory _artworkTitle,
         string memory _ipfsHash,
+        string memory _description,
         uint _royaltyP
     ) public {
         require(isRegistered[msg.sender], "Please register");
-        Artwork storage artwork = artworks[artworkId];
         artworkId++;
-        artwork.AW_title = _AW_title;
+        Artwork storage artwork = artworks[artworkId];
+        artwork.description = _description;
+        artwork.artworkTitle = _artworkTitle;
         artwork.originalArtist = msg.sender;
         artwork.ipfsHash = _ipfsHash;
         artwork.royaltyP = _royaltyP;
         artwork.likes = 0;
         artwork.nftMinted = false;
+        artwork.available = true;
 
-        emit artworkAdded(msg.sender, _AW_title, false);
+        emit artworkAdded(msg.sender, _artworkTitle, false);
     }
 
     event ArtworkLiked(
@@ -231,10 +215,17 @@ contract artAuction is ERC721 {
         uint _basePrice,
         uint duration  //take in seconds from frontend
     ) public {
+
+        Artwork storage artwork = artworks[_artID];
+        
+        require(artwork.available == true, "Artwork cannot be put up for sale");
+        if(!artwork.nftMinted){
+            require(msg.sender == artwork.originalArtist, "Auction can only be set by owner of artwork");
+        }
+        else{
+        require(msg.sender == ownerOf(_artID), "Auction can only be set by owner of artwork");}
         auctionCount++;
         Auction storage auction = auctions[auctionCount];
-
-        
         auction.auctionID = auctionCount;
         auction.seller = payable(msg.sender);
         auction.artID = _artID;
@@ -243,11 +234,10 @@ contract artAuction is ERC721 {
         auction.ended = false;
         auction.winner = address(0);
         auction.winningBid = 0;
-        Artwork storage artwork = artworks[_artID];
-       emit  auctionCreated(auctionCount,artwork.AW_title,msg.sender,_basePrice);
+
+       emit  auctionCreated(auctionCount,artwork.artworkTitle,msg.sender,_basePrice);
 
         artwork.available= false;
-
 
     }
 
@@ -261,14 +251,14 @@ contract artAuction is ERC721 {
         Auction storage auction = auctions[auctionID];
         uint minBid;
 
-        require(block.timestamp <= auction.endTime, "Auction ended");
+        require(!auction.ended && block.timestamp <= auction.endTime, "Auction ended");
 
         if (auction.winner == address(0)) {
             minBid = auction.basePrice;
         } else {
             minBid = auction.winningBid;
         }
-        require(msg.value >= minBid, "Bid too low");
+        require(msg.value > minBid, "Bid too low");
 
         
         auction.refunds[msg.sender] += msg.value;
@@ -290,14 +280,14 @@ contract artAuction is ERC721 {
     function endAuction(uint auctionID) public {
         Auction storage auction = auctions[auctionID];
         Artwork storage artwork = artworks[auction.artID];
-        // Artist storage artist = artists[auction.]; //////////
         require(!auction.ended ,"Auction has already ended");
         require( msg.sender==auction.seller || block.timestamp > auction.endTime,
             "Not authorised to end auction"
         );
 
         if (auction.winner == address(0)) {
-            return;
+            auction.ended = true;
+            artwork.available = true;
         }
 
 
@@ -320,40 +310,53 @@ contract artAuction is ERC721 {
             require(success, "Transfer failed");
         }
         auction.ended = true;
+        artwork.available = true;
         Artist storage winner = artists[auction.winner];
-        emit auctionEnded(auctionID, auction.winner, auction.winningBid,winner.name,artwork.AW_title);
+        emit auctionEnded(auctionID, auction.winner, auction.winningBid,winner.name,artwork.artworkTitle);
     }
 
+    event withdraw(uint amount, address receiver);
     function withdrawRefund(uint auctionID) public { //called by participants of auction who didnt win
         Auction storage auction = auctions[auctionID];
         require(auction.ended, "Auction hasn't ended yet");
         require(auction.refunds[msg.sender] > 0, "No refund due");
+        uint refund;
         if(msg.sender==auction.winner){
-            uint refund = auction.refunds[msg.sender]-auction.winningBid;
+            refund = auction.refunds[msg.sender]-auction.winningBid;
             (bool success, ) = msg.sender.call{value: refund}("");
             require(success, "Refund transfer failed");
         }else{
-        (bool success, ) = msg.sender.call{value: auction.refunds[msg.sender]}("");
-        require(success, "Refund transfer failed");
-        }
+            refund = auction.refunds[msg.sender];
+            (bool success, ) = msg.sender.call{value: refund}("");
+            require(success, "Refund transfer failed");
+            }
         auction.refunds[msg.sender] = 0;
+        emit withdraw(refund, msg.sender);
     }
 
     //DIRECT SALES ------------------------------------------------------------------------------------
 
     event createdDirectSale(uint indexed DSId, string title, uint price);
 
-
     function createDS(uint _price, uint _artworkID) public {
+        
+        Artwork storage artwork = artworks[_artworkID];
+        require(artwork.available == true, "Artwork cannot be put up for sale");
+        if(!artwork.nftMinted){
+            require(msg.sender == artwork.originalArtist, "Auction can only be set by owner of artwork");
+        }
+        else{
+        require(msg.sender == ownerOf(_artworkID), "Auction can only be set by owner of artwork");}
+        
         DirectSaleCount++;
         DS storage directSale = directSales[DirectSaleCount];
-        Artwork storage artwork = artworks[_artworkID];
+        
         directSale.seller = payable(msg.sender);
         directSale.price = _price ;
         directSale.artworkID = _artworkID;
         directSale.sold = false;
         artwork.available=false;
-        emit createdDirectSale(DirectSaleCount, artwork.AW_title, _price);
+        emit createdDirectSale(DirectSaleCount, artwork.artworkTitle, _price);
     }
 
     event artworkBought(uint indexed DSid, string artworkTitle, address indexed buyer);
@@ -363,15 +366,16 @@ contract artAuction is ERC721 {
 
         DS storage directSale = directSales[DSid];
         Artwork storage artwork = artworks[directSale.artworkID];
-        require(!directSale.sold, "This artwork has already been sold");
+        require(!directSale.sold , "This artwork has already been sold");
         require(msg.value == directSale.price, "Price is incorrect");
 
 
-        if (directSale.seller == artwork.originalArtist) {    //First time sale, current owner = orArgsist
-            mintNFT(msg.sender, directSale.artworkID); //creating nft and minting directly to buyer, not making ogArtist as first owner
+        if (directSale.seller == artwork.originalArtist) {    //First time sale, current owner = originalArtist
+            mintNFT(msg.sender, directSale.artworkID); //creating nft and minting directly to buyer, not making originalArtist as first owner
             (bool success, ) = artwork.originalArtist.call{value: msg.value}("");
             require(success, "Payment to artist failed");
             directSale.sold = true;
+            artwork.available = true;
 
         } else {
             uint royaltyPercentage = artwork.royaltyP;
@@ -391,17 +395,16 @@ contract artAuction is ERC721 {
             require(successSeller, "Payment to seller failed");
 
             directSale.sold = true;
+            artwork.available = true;
         }
-        emit artworkBought(DSid,artwork.AW_title ,msg.sender);
+        artwork.available = true;
+        emit artworkBought(DSid,artwork.artworkTitle ,msg.sender);
     }
 
-    function endDS(uint dsId) public { //befre sold, cdetele Ds and ake image available again
+    function endDS(uint dsId) public { //before sold, delete DS and make image available again
         DS storage directSale = directSales[dsId];
-        require(
-            msg.sender == directSale.seller,
-            "only artist can end the sale"
-        );
-        require(!directSale.sold, "you cant end an inactive sale");
+        require( msg.sender == directSale.seller, "only artist can end the sale");
+        require(!directSale.sold, "you cant end an active sale");
         directSale.sold = true;
         Artwork storage artwork = artworks[directSale.artworkID];
         artwork.available = true;
